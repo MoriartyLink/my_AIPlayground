@@ -3,7 +3,7 @@
 
 A lightweight chat interface to talk to your private documents (PDFs, Google Drive) using **Google Gemini 2.0** and **Vertex AI RAG Engine**.
 
-## 📋 Prerequisites
+##  Prerequisites
 
 1.  **Google Cloud Project:** With "Vertex AI API" enabled.
 2.  **RAG Corpus:** Created in Vertex AI Studio (Region: `europe-west1`).
