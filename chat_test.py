@@ -19,12 +19,15 @@ CORPUS_ID = f"projects/{PROJECT_ID}/locations/{LOCATION}/ragCorpora/{RAW_CORPUS_
 KEY_FILE = "service-account.json" 
 
 # --- 2. AUTHENTICATION ---
-# We load credentials explicitly to avoid system permission errors
+
 try:
-    credentials = service_account.Credentials.from_service_account_file(KEY_FILE)
+    # Convert secrets dictionary to a credential object
+    gcp_info = st.secrets["gcp_service_account"]
+    credentials = service_account.Credentials.from_service_account_info(gcp_info)
+    
     vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
 except Exception as e:
-    st.error(f"❌ Auth Error: Could not load '{KEY_FILE}'. Make sure it is in this folder.")
+    st.error(f"❌ Auth Error: Check your Streamlit Secrets. {e}")
     st.stop()
 
 # --- 3. SETUP UI ---
