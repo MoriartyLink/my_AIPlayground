@@ -116,3 +116,13 @@ if prompt := st.chat_input("Ask your Co-Engineer coach...", key="agri_chat"):
         answer = response.text
         st.markdown(answer)
         st.session_state.messages.append({"role": "assistant", "content": answer})
+
+
+
+# --- DEBUG ONLY ---
+st.write("Available Secret Keys:", list(st.secrets.keys()))
+# ------------------
+
+if "gcp_service_account" not in st.secrets:
+    st.error("❌ Key 'gcp_service_account' missing.")
+    st.stop()
