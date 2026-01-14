@@ -33,7 +33,7 @@ st.title("🤖 Vertex AI RAG Chat")
 st.caption(f"Connected to Corpus: `{CORPUS_ID.split('/')[-1]}` in `{LOCATION}`")
 
 # --- 4. INITIALIZE RAG TOOL ---
-st.write(f"Welcome to Co-engineer Platform! Ask your Agri Venture Studio Coach anything about co-engineering solutions.")
+st.write(f"Welcome to Co-engineer Platform! ")
 # Using the latest VertexRagStore syntax (Fixes the 'RagRetrieval' error)
 rag_retrieval_tool = Tool.from_retrieval(
     retrieval=rag.Retrieval(
@@ -94,7 +94,6 @@ for message in st.session_state.messages:
 
 # 3. Transformer (Dictionary -> Vertex Content Objects)
 from vertexai.generative_models import Content, Part
-
 
 
 # 4. Input & Response
