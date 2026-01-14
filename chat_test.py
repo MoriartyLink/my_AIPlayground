@@ -18,16 +18,19 @@ RAW_CORPUS_ID = os.getenv("CORPUS_ID")
 CORPUS_ID = f"projects/{PROJECT_ID}/locations/{LOCATION}/ragCorpora/{RAW_CORPUS_ID}"
 KEY_FILE = "service-account.json" 
 
-# --- 2. AUTHENTICATION ---
+
+# --- 2. AUTHENTICATION (The Secrets Way) ---
+if "gcp_service_account" not in st.secrets:
+    st.error("❌ Key 'gcp_service_account' not found in secrets.toml.")
+    st.info("Ensure the file is at .streamlit/secrets.toml and has the [gcp_service_account] header.")
+    st.stop()
 
 try:
-    # Convert secrets dictionary to a credential object
-    gcp_info = st.secrets["gcp_service_account"]
-    credentials = service_account.Credentials.from_service_account_info(gcp_info)
-    
+    creds_info = st.secrets["gcp_service_account"]
+    credentials = service_account.Credentials.from_service_account_info(creds_info)
     vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
 except Exception as e:
-    st.error(f"❌ Auth Error: Check your Streamlit Secrets. {e}")
+    st.error(f"❌ Auth Error: {e}")
     st.stop()
 
 # --- 3. SETUP UI ---
