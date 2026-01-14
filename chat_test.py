@@ -95,12 +95,7 @@ for message in st.session_state.messages:
 # 3. Transformer (Dictionary -> Vertex Content Objects)
 from vertexai.generative_models import Content, Part
 
-def get_vertex_history():
-    return [
-        Content(role="user" if m["role"] == "user" else "model", 
-                parts=[Part.from_text(m["content"])]) 
-        for m in st.session_state.messages
-    ]
+
 
 # 4. Input & Response
 if prompt := st.chat_input("Ask your Co-Engineer coach...", key="agri_chat"):
