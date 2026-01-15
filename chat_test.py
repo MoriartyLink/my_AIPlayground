@@ -21,17 +21,18 @@ CORPUS_ID = f"projects/{PROJECT_ID}/locations/{LOCATION}/ragCorpora/{RAW_CORPUS_
 
 # --- 3. AUTHENTICATION ---
 try:
+    # 1. Access the secret. Streamlit handles the .toml parsing
     raw_creds = st.secrets["gcp_service_account"]
     
-    # If it's a string, parse it as JSON. If it's a dict, use it directly.
-    if isinstance(raw_creds, str):
-        creds_info = json.loads(raw_creds)
-    else:
-        creds_info = dict(raw_creds)
+    # 2. Force conversion to a standard dict without json.loads()
+    # If raw_creds is already a dict-like object (AttrDict), dict() handles it
+    creds_info = dict(raw_creds)
     
-    # Clean the private key to ensure Base64 multiple-of-4 alignment
+    # 3. Clean the private key for Base64 padding
     if "private_key" in creds_info:
-        creds_info["private_key"] = creds_info["private_key"].replace("\\n", "\n").strip()
+        # We target the string value inside the dict
+        k = creds_info["private_key"]
+        creds_info["private_key"] = k.replace("\\n", "\n").strip()
 
     credentials = service_account.Credentials.from_service_account_info(creds_info)
     vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
