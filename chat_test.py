@@ -1,4 +1,6 @@
 import streamlit as st
+
+
 import vertexai
 import os
 import json
@@ -19,25 +21,25 @@ CORPUS_ID = f"projects/{PROJECT_ID}/locations/{LOCATION}/ragCorpora/{RAW_CORPUS_
 
 # --- 3. AUTHENTICATION ---
 try:
-    # Get raw secret
+    # 1. Access the secret. Streamlit parses TOML headers into dict-like objects.
     raw_creds = st.secrets["gcp_service_account"]
     
-    # Logic pivot: Handle string vs dictionary
-    if isinstance(raw_creds, str):
-        creds_info = json.loads(raw_creds)
-    else:
-        creds_info = dict(raw_creds)
+    # 2. Convert to a standard dictionary to avoid AttrDict issues
+    # We skip json.loads() because st.secrets already did the parsing.
+    creds_info = dict(raw_creds)
     
-    # Clean the private key for Base64 alignment
+    # 3. Clean the private key
     if "private_key" in creds_info:
+        # Remove literal \n and whitespace that causes Base64 padding errors
         creds_info["private_key"] = creds_info["private_key"].replace("\\n", "\n").strip()
 
     credentials = service_account.Credentials.from_service_account_info(creds_info)
     vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
 except Exception as e:
+    # This will now catch specific JSON or Key errors
     st.error(f"❌ Auth Error: {e}")
     st.stop()
-
+    
 # --- 4. INITIALIZE RAG TOOL ---
 rag_retrieval_tool = Tool.from_retrieval(
     retrieval=rag.Retrieval(
