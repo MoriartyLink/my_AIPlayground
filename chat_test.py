@@ -35,7 +35,10 @@ try:
     # Clean the private key for Base64 alignment
     if "private_key" in creds_info:
         # Replace literal \n and strip whitespace
-        creds_info["private_key"] = creds_info["private_key"].replace("\\n", "\n").strip()
+        k = creds_info["private_key"]
+        if "\\n" in k:
+            k = k.replace("\\n", "\n")
+        creds_info["private_key"] = k.strip()
 
     credentials = service_account.Credentials.from_service_account_info(creds_info)
     vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
