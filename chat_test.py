@@ -20,43 +20,37 @@ RAW_CORPUS_ID = os.getenv("CORPUS_ID")
 CORPUS_ID = f"projects/{PROJECT_ID}/locations/{LOCATION}/ragCorpora/{RAW_CORPUS_ID}"
 
 # --- 3. AUTHENTICATION ---
+# --- 3. AUTHENTICATION ---
 try:
-    # Get the secret from Streamlit
     raw_creds = st.secrets["gcp_service_account"]
+    creds_info = dict(raw_creds) if not isinstance(raw_creds, str) else json.loads(raw_creds)
     
-    # Check if raw_creds is a string (JSON) or an AttrDict (TOML Table)
-    if isinstance(raw_creds, str):
-        # This fixes the "length 1; 2 is required" error
-        creds_info = json.loads(raw_creds)
-    else:
-        # If it's already an AttrDict/dict, cast it directly
-        creds_info = dict(raw_creds)
-    
-    # Clean the private key for Base64 alignment
-    # Clean the private key for Base64 alignment
     if "private_key" in creds_info:
-        key = creds_info["private_key"]
+        # Extract the raw key string
+        key_body = creds_info["private_key"]
         
-        # 1. Remove the header and footer temporarily to clean the "meat" of the key
-        header = "-----BEGIN PRIVATE KEY-----"
-        footer = "-----END PRIVATE KEY-----"
+        # 1. Strip the headers/footers to get the raw Base64
+        body = key_body.replace("-----BEGIN PRIVATE KEY-----", "")
+        body = body.replace("-----END PRIVATE KEY-----", "")
         
-        # Extract the content between headers
-        content = key.replace(header, "").replace(footer, "")
+        # 2. Clean EVERYTHING (newlines, literal \n, spaces, tabs)
+        clean_body = "".join(body.split()).replace("\\n", "")
         
-        # 2. Remove ALL whitespace, literal \n, and actual newlines
-        clean_content = "".join(content.split()).replace("\\n", "")
-        
-        # 3. Reconstruct the PEM format properly with actual newlines
-        # This ensures the 'cryptography' library gets exactly what it expects
-        creds_info["private_key"] = f"{header}\n{clean_content}\n{footer}"
+        # 3. Fix the "InvalidLength" (Padding)
+        # Base64 length must be a multiple of 4.
+        missing_padding = len(clean_body) % 4
+        if missing_padding:
+            clean_body += "=" * (4 - missing_padding)
+            
+        # 4. Reconstruct with fresh, clean headers
+        creds_info["private_key"] = f"-----BEGIN PRIVATE KEY-----\n{clean_body}\n-----END PRIVATE KEY-----"
 
     credentials = service_account.Credentials.from_service_account_info(creds_info)
     vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
 except Exception as e:
     st.error(f"❌ Auth Error: {e}")
     st.stop()
-
+    
 # --- 4. INITIALIZE RAG TOOL ---
 rag_retrieval_tool = Tool.from_retrieval(
     retrieval=rag.Retrieval(
