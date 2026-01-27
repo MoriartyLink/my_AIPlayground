@@ -33,12 +33,23 @@ try:
         creds_info = dict(raw_creds)
     
     # Clean the private key for Base64 alignment
+    # Clean the private key for Base64 alignment
     if "private_key" in creds_info:
-        # Replace literal \n and strip whitespace
-        k = creds_info["private_key"]
-        if "\\n" in k:
-            k = k.replace("\\n", "\n")
-        creds_info["private_key"] = k.strip()
+        key = creds_info["private_key"]
+        
+        # 1. Remove the header and footer temporarily to clean the "meat" of the key
+        header = "-----BEGIN PRIVATE KEY-----"
+        footer = "-----END PRIVATE KEY-----"
+        
+        # Extract the content between headers
+        content = key.replace(header, "").replace(footer, "")
+        
+        # 2. Remove ALL whitespace, literal \n, and actual newlines
+        clean_content = "".join(content.split()).replace("\\n", "")
+        
+        # 3. Reconstruct the PEM format properly with actual newlines
+        # This ensures the 'cryptography' library gets exactly what it expects
+        creds_info["private_key"] = f"{header}\n{clean_content}\n{footer}"
 
     credentials = service_account.Credentials.from_service_account_info(creds_info)
     vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
