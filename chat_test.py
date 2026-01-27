@@ -20,37 +20,20 @@ RAW_CORPUS_ID = os.getenv("CORPUS_ID")
 CORPUS_ID = f"projects/{PROJECT_ID}/locations/{LOCATION}/ragCorpora/{RAW_CORPUS_ID}"
 
 # --- 3. AUTHENTICATION ---
-# --- 3. AUTHENTICATION ---
 try:
     raw_creds = st.secrets["gcp_service_account"]
     creds_info = dict(raw_creds) if not isinstance(raw_creds, str) else json.loads(raw_creds)
     
     if "private_key" in creds_info:
-        # Extract the raw key string
-        key_body = creds_info["private_key"]
-        
-        # 1. Strip the headers/footers to get the raw Base64
-        body = key_body.replace("-----BEGIN PRIVATE KEY-----", "")
-        body = body.replace("-----END PRIVATE KEY-----", "")
-        
-        # 2. Clean EVERYTHING (newlines, literal \n, spaces, tabs)
-        clean_body = "".join(body.split()).replace("\\n", "")
-        
-        # 3. Fix the "InvalidLength" (Padding)
-        # Base64 length must be a multiple of 4.
-        missing_padding = len(clean_body) % 4
-        if missing_padding:
-            clean_body += "=" * (4 - missing_padding)
-            
-        # 4. Reconstruct with fresh, clean headers
-        creds_info["private_key"] = f"-----BEGIN PRIVATE KEY-----\n{clean_body}\n-----END PRIVATE KEY-----"
+        # Pivot: .strip() removes the \n at the start/end caused by TOML formatting
+        creds_info["private_key"] = creds_info["private_key"].strip().replace("\\n", "\n")
 
     credentials = service_account.Credentials.from_service_account_info(creds_info)
     vertexai.init(project=PROJECT_ID, location=LOCATION, credentials=credentials)
 except Exception as e:
     st.error(f"❌ Auth Error: {e}")
     st.stop()
-    
+
 # --- 4. INITIALIZE RAG TOOL ---
 rag_retrieval_tool = Tool.from_retrieval(
     retrieval=rag.Retrieval(
