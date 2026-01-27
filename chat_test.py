@@ -87,7 +87,7 @@ model = GenerativeModel(
 )
 
 # --- 5. CHAT UI ---
-st.title("🤖 Vertex AI RAG Chat")
+st.title("Olyster Mushroom Business Co-Engineer")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
